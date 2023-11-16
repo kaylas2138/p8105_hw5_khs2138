@@ -65,33 +65,48 @@ data_prop |>
 
 ## Proportion of Unsolved Homicides
 
-For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of `prop.test` as an R object, apply the `broom::tidy` to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.
+### Baltimore
+**For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of `prop.test` as an R object, apply the `broom::tidy` to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.**
 
-```{r prop}
+```{r prop_bt}
 data_prop_bt = data_prop |>
   filter(city_state == "Baltimore, MD")
 
 prop.test(data_prop_bt$n_unsolved, data_prop_bt$n_cases) |>
   broom::tidy() |>
   select(estimate, conf.low, conf.high)
+
+data_prop |>
+  filter(city_state == "Baltimore, MD") |>
+  mutate(prop = map2(n_unsolved, n_cases, ~broom::tidy(prop.test(.x,.y)))) |>
+  unnest(prop) |>
+  select(estimate,conf.low,conf.high)
 ```
 
 
+### All Cities
 
-## Proportion and Confidence Intervals
+**Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of `purrr::map`, `purrr::map2`, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.**
 
-Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. Do this within a “tidy” pipeline, making use of `purrr::map`, `purrr::map2`, list columns and unnest as necessary to create a tidy dataframe with estimated proportions and CIs for each city.
-
-```{r}
-
-#prop.test(data_prop$n_unsolved[[1]], data_prop$n_cases[[1]])
-
+```{r prop_all}
+city_prop = data_prop |>
+  mutate(prop = map2(n_unsolved, n_cases, ~broom::tidy(prop.test(.x,.y)))) |>
+  unnest(prop) |>
+  select(city, city_state, n_cases, n_unsolved, estimate,conf.low,conf.high)
+city_prop
 ```
 
 
 ## Plot CIs by city
 
 Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
+```{r city_plot}
+city_prop |>
+  ggplot(aes(x = reorder(city, estimate), y = estimate)) + geom_point() + geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
 
 
 
