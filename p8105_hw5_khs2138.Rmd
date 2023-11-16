@@ -192,7 +192,7 @@ Repeat the above for $\mu = \{1, 2, 3, 4, 5, 6\}$, and complete the following:
 ```{r sim_mus}
 sim_results_df =  
   expand_grid(sample_size = n, mus = c(1, 2, 3, 4, 5, 6), iter = 1:5000) |>
-  mutate(data = map2(iter, mus, ~rnorm(n, mean = mus, sd = sigma))) |>
+  mutate(data = map(mus, ~rnorm(n, mean = .x, sd = sigma))) |>
   mutate(mu_result = map_dbl(data, ~mean(.x))) |>
   mutate(t_test = map2(data, mus, ~broom::tidy(t.test(.x, mu = .y, conf.level = 1 - alpha)))) |>
   unnest(t_test) |>
@@ -214,7 +214,28 @@ sim_results_df |>
   ggplot(aes(x = mus, y = power)) + geom_line() + geom_point()
 ```
 
+We'd expect effect size and power to increase together, which they seem to to an extent (power is greater for mu = 5,6 than 1,2) but there is variability and no clear pattern. This can be a result of sample size / alpha. 
 
+## Plot Estimate and True $\mu$
 
-* Make a plot showing the average estimate of $\hat{\mu}$ on the y axis and the true value of $\mu$ on the x axis. Make a second plot (or overlay on the first) the average estimate of $\hat{\mu}$ **only in samples for which the null was rejected** on the y axis and the true value of $\mu$ on the x axis. Is the sample average of $\hat{\mu}$ across tests for which the null is rejected approximately equal to the true value of $\mu$? Why or why not?
+* Make a plot showing the average estimate of $\hat{\mu}$ on the y axis and the true value of $\mu$ on the x axis. 
 
+```{r plot_all}
+sim_results_df |> 
+  group_by(mus) |>
+  summarize(mean_mu = mean(mu_result)) |>
+  ggplot(aes(x = mus, y = mean_mu)) + geom_point() + geom_line()
+```
+
+* Make a second plot (or overlay on the first) the average estimate of $\hat{\mu}$ **only in samples for which the null was rejected** on the y axis and the true value of $\mu$ on the x axis. 
+
+```{r plot_reject}
+sim_results_df |> 
+  filter(p.value < alpha) |>
+  group_by(mus) |>
+  summarize(mean_mu = mean(mu_result)) |>
+  ggplot(aes(x = mus, y = mean_mu)) + geom_point() + geom_line()
+```
+
+**Is the sample average of $\hat{\mu}$ across tests for which the null is rejected approximately equal to the true value of $\mu$? Why or why not?**
+Yes - because when the null hypothesis is true, we'd expect the average of simulated data for rejected tests to be equal to the true value of $\mu$, subject to variability due to sample size/power. 
