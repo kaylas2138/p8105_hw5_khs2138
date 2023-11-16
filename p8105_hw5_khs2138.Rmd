@@ -169,24 +169,23 @@ Set $\mu=0$. Generate 5000 datasets from the model
 
 $$ x \sim Normal[\mu, \sigma] $$
 
+For each dataset, save $\hat{\mu}$ and the p-value arising from a test of $H : \mu = 0$ using $\alpha = 0.05$. _Hint: to obtain the estimate and p-value, use `broom::tidy` to clean the output of `t.test`._ 
+
+
 ```{r generate_norm}
 mu = 0 
+alpha = 0.05
 
 sim_results_df = 
-  expand_grid(
-    sample_size = n,
-    iter = 1:5000
-  ) |> 
-  mutate(
-    data = map(iter, ~rnorm(n, mean = mu, sd = sigma))
-  ) 
+  expand_grid(sample_size = n, iter = 1:5000) |> 
+  mutate(data = map(iter, ~rnorm(n, mean = mu, sd = sigma))) |>
+  mutate(mu_result = map_dbl(data, ~mean(.x))) |>
+  mutate(p_value = map(data, ~t.test(.x, mu = 0, conf.level = 1 - alpha)))
+
 sim_results_df
 ```
 
 
-
-
-For each dataset, save $\hat{\mu}$ and the p-value arising from a test of $H : \mu = 0$ using $\alpha = 0.05$. _Hint: to obtain the estimate and p-value, use `broom::tidy` to clean the output of `t.test`._ 
 
 Repeat the above for $\mu = \{1, 2, 3, 4, 5, 6\}$, and complete the following:
 
