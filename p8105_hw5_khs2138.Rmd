@@ -172,7 +172,18 @@ $$ x \sim Normal[\mu, \sigma] $$
 ```{r generate_norm}
 mu = 0 
 
+sim_results_df = 
+  expand_grid(
+    sample_size = n,
+    iter = 1:5000
+  ) |> 
+  mutate(
+    data = map(iter, ~rnorm(n, mean = mu, sd = sigma))
+  ) 
+sim_results_df
 ```
+
+
 
 
 For each dataset, save $\hat{\mu}$ and the p-value arising from a test of $H : \mu = 0$ using $\alpha = 0.05$. _Hint: to obtain the estimate and p-value, use `broom::tidy` to clean the output of `t.test`._ 
