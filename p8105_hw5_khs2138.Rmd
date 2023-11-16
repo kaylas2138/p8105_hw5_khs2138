@@ -68,7 +68,7 @@ data_prop |>
 ### Baltimore
 **For the city of Baltimore, MD, use the prop.test function to estimate the proportion of homicides that are unsolved; save the output of `prop.test` as an R object, apply the `broom::tidy` to this object and pull the estimated proportion and confidence intervals from the resulting tidy dataframe.**
 
-```{r prop_bt}
+```{r prop_bt_old, eval = FALSE}
 data_prop_bt = data_prop |>
   filter(city_state == "Baltimore, MD")
 
@@ -76,6 +76,9 @@ prop.test(data_prop_bt$n_unsolved, data_prop_bt$n_cases) |>
   broom::tidy() |>
   select(estimate, conf.low, conf.high)
 
+```
+
+```{r prop_bt}
 data_prop |>
   filter(city_state == "Baltimore, MD") |>
   mutate(prop = map2(n_unsolved, n_cases, ~broom::tidy(prop.test(.x,.y)))) |>
@@ -99,7 +102,7 @@ city_prop
 
 ## Plot CIs by city
 
-Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+**Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.**
 
 ```{r city_plot}
 city_prop |>
